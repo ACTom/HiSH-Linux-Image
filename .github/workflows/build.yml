@@ -1,0 +1,58 @@
+name: Build Fedora QCOW2
+
+on:
+  push:
+    paths:
+      - 'Fedora.json' # 只有当 Fedora.json 文件被修改时触发
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: 检出代码
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # Step 2: 解析 Fedora.json 文件
+      - name: Parse Fedora.json
+        id: parse-fedora-json
+        run: |
+          # 使用 jq 解析 JSON 文件
+          NAME=$(jq -r '.name' Fedora.json)
+          VERSION=$(jq -r '.version' Fedora.json)
+          URL=$(jq -r '.url' Fedora.json)
+
+          # 设置环境变量
+          echo "NAME=$NAME" >> $GITHUB_ENV
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "DOWNLOAD_URL=$URL" >> $GITHUB_ENV
+
+      # Step 3: 下载 .raw.xz 文件
+      - name: Download Fedora raw.xz file
+        run: |
+          mkdir -p input
+          wget -O input/source.raw.xz "${{ env.DOWNLOAD_URL }}"
+
+      # Step 4: 安装依赖工具
+      - name: Install dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y qemu-utils e2fsprogs util-linux xz-utils rsync jq
+
+      # Step 5: 转换为 qcow2 文件
+      - name: Convert to qcow2
+        run: |
+          mkdir -p output
+          TARGET_FILE="output/hish-${{ env.NAME }}-${{ env.VERSION }}.qcow2"
+          sudo ./convert.fedora.sh input/source.raw.xz "$TARGET_FILE"
+
+      # Step 6: 上传生成的 qcow2 文件到 Release
+      - name: Create Release and upload artifact
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: "hish-${{ env.NAME }}-${{ env.VERSION }}"
+          name: "hish-${{ env.NAME }}-${{ env.VERSION }}"
+          files: output/hish-${{ env.NAME }}-${{ env.VERSION }}.qcow2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
