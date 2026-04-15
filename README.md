@@ -12,15 +12,18 @@
 2. 解压并挂载原始镜像的根分区
 3. 创建 120G 的 qcow2 镜像并格式化为 ext4
 4. 将根文件系统内容复制到新镜像
-5. 创建 `/init` → `/sbin/init` 的符号链接（HiSH 启动需要）
-6. 禁用内核更新（避免更新后无法启动）
+5. 对新镜像做 HiSH 所需的修改
+    - 删除原有磁盘挂载配置
+    - 新增共享目录挂载配置
+    - 创建 `/init` → `/sbin/init` 的符号链接
+    - 禁用内核更新（HiSH自带内核）
 7. 压缩输出最终的 qcow2 镜像
 
 ## 支持的发行版
 
 | 发行版 | 配置文件 | 说明 |
 |--------|----------|------|
-| Fedora Minimal | `Fedora.json` | Fedora 最小化安装 |
+| Fedora | `Fedora.json` | Fedora 最小化安装 |
 
 ## 使用方法
 
@@ -36,7 +39,7 @@
 
 ```json
 {
-  "name": "Fedora-Minimal",
+  "name": "Fedora",
   "version": "43-1.6",
   "url": "https://download.fedoraproject.org/pub/fedora/linux/releases/43/Spins/aarch64/images/Fedora-Minimal-43-1.6.aarch64.raw.xz"
 }

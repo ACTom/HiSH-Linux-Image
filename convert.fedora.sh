@@ -183,7 +183,24 @@ fi
 
 umount "$SOURCE_MOUNT_DIR"
 
-# Step 11: 创建 /sbin/init 到 /init 的相对路径软链接
+# Step 11: 删除磁盘挂载配置文件并创建 share.mount
+echo "Removing mount unit files..."
+MOUNT_UNITS=("-.mount" "boot.mount" "boot-efi.mount")
+SYSTEMD_DIR="$MOUNT_DIR/etc/systemd/system"
+for unit in "${MOUNT_UNITS[@]}"; do
+    if [ -f "$SYSTEMD_DIR/$unit" ]; then
+        rm -f "$SYSTEMD_DIR/$unit"
+        echo "  Removed $unit"
+    else
+        echo "  $unit not found, skipping"
+    fi
+done
+
+echo "Creating share mount ..."
+echo "hostshare /mnt/share 9p defaults 0 0" >> "$MOUNT_DIR/etc/fstab"
+echo "  Created share.mount"
+
+# Step 12: 创建 /sbin/init 到 /init 的相对路径软链接
 echo "Creating relative symbolic link sbin/init -> init..."
 cd "$MOUNT_DIR" || { echo "Failed to change directory to $MOUNT_DIR"; exit 1; }
 ln -srf "sbin/init" "init"
@@ -200,7 +217,7 @@ if [ $? -ne 0 ]; then
 fi
 cd -
 
-# Step 12: 禁用 kernel 和 kernel-core 的更新
+# Step 13: 禁用 kernel 和 kernel-core 的更新
 echo "Disabling kernel updates in DNF configuration..."
 DNF_CONF="$MOUNT_DIR/etc/dnf/dnf.conf"
 if [ -f "$DNF_CONF" ]; then
@@ -220,7 +237,7 @@ else
     echo "Warning: DNF configuration file not found at $DNF_CONF. Skipping kernel update disable."
 fi
 
-# Step 13: 卸载分区并断开 nbd 和 loop 连接
+# Step 14: 卸载分区并断开 nbd 和 loop 连接
 echo "Unmounting and detaching devices..."
 umount "$MOUNT_DIR"
 qemu-nbd -d "$NBD_DEVICE"
@@ -231,7 +248,7 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-# Step 14: 使用 qemu-img convert 压缩 qcow2 文件为目标文件
+# Step 15: 使用 qemu-img convert 压缩 qcow2 文件为目标文件
 echo "Compressing qcow2 file using qemu-img convert..."
 qemu-img convert -O qcow2 -c "$QCOW2_FILE" "$TARGET"
 if [ $? -ne 0 ]; then

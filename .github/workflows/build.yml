@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - 'Fedora.json' # 只有当 Fedora.json 文件被修改时触发
+  workflow_dispatch: # 手动触发
 
 jobs:
   build:
@@ -44,15 +45,15 @@ jobs:
       - name: Convert to qcow2
         run: |
           mkdir -p output
-          TARGET_FILE="output/hish-${{ env.NAME }}-${{ env.VERSION }}.qcow2"
+          TARGET_FILE="output/HiSH-image-${{ env.NAME }}-${{ env.VERSION }}.qcow2"
           sudo ./convert.fedora.sh input/source.raw.xz "$TARGET_FILE"
 
       # Step 6: 上传生成的 qcow2 文件到 Release
       - name: Create Release and upload artifact
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: "hish-${{ env.NAME }}-${{ env.VERSION }}"
-          name: "hish-${{ env.NAME }}-${{ env.VERSION }}"
-          files: output/hish-${{ env.NAME }}-${{ env.VERSION }}.qcow2
+          tag_name: "HiSH-image-${{ env.NAME }}-${{ env.VERSION }}"
+          name: "HiSH-image-${{ env.NAME }}-${{ env.VERSION }}"
+          files: output/HiSH-image-${{ env.NAME }}-${{ env.VERSION }}.qcow2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
