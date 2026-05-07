@@ -1,0 +1,5 @@
+{
+  "name": "Debian",
+  "version": "13",
+  "url": "https://cloud.debian.org/images/cloud/trixie/latest/debian-13-nocloud-arm64.tar.xz"
+}

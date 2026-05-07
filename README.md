@@ -36,18 +36,32 @@
     - 禁用内核更新（HiSH 自带内核）
 5. 压缩输出最终的 qcow2 镜像
 
+**Debian（.tar.xz 磁盘镜像）：**
+
+1. 下载官方 `.tar.xz` 格式的镜像
+2. 解压获取 `disk.raw`，挂载其中的根分区
+3. 创建 120G 的 qcow2 镜像并格式化为 ext4
+4. 将根文件系统内容复制到新镜像
+5. 对新镜像做 HiSH 所需的修改
+    - 配置 `/etc/fstab` 添加共享目录挂载
+    - 配置 `/etc/network/interfaces` 网络（DHCP）
+    - 创建 `/init` → `/sbin/init` 的符号链接
+    - 禁用内核更新（HiSH 自带内核）
+6. 压缩输出最终的 qcow2 镜像
+
 ## 支持的发行版
 
 | 发行版 | 配置文件 | 说明 |
 |--------|----------|------|
 | Fedora | `Fedora.json` | Fedora 最小化安装（.raw.xz） |
 | Ubuntu | `Ubuntu.json` | Ubuntu WSL 根文件系统（.tar.gz） |
+| Debian | `Debian.json` | Debian QEMU 云磁盘镜像（.tar.xz） |
 
 ## 使用方法
 
 > **Ubuntu 默认登录信息：** 用户 `root`，密码 `hish`
 >
-> **Fedora 首次启动时会运行初始设置向导**，需要根据提示创建用户和设置密码。
+> **Fedora / Debian 首次启动时会运行初始设置向导**，需要根据提示创建用户和设置密码。
 
 ### 下载镜像
 
@@ -83,9 +97,12 @@ sudo ./convert.fedora.sh <source.raw.xz> <output.qcow2>
 
 # Ubuntu
 sudo ./convert.ubuntu.sh <source.tar.gz> <output.qcow2>
+
+# Debian
+sudo ./convert.debian.sh <source.tar.xz> <output.qcow2>
 ```
 
-**依赖：** `qemu-utils`、`e2fsprogs`、`mount`、`util-linux`、`rsync`（Fedora 额外需要 `xz-utils`）
+**依赖：** `qemu-utils`、`e2fsprogs`、`mount`、`util-linux`、`rsync`（Fedora/Debian 额外需要 `xz-utils`，Debian 额外需要 `parted`）
 
 > **注意：** 脚本必须以 root 权限运行。
 

@@ -1,0 +1,59 @@
+name: Build Debian QCOW2
+
+on:
+  push:
+    paths:
+      - 'Debian.json' # 只有当 Debian.json 文件被修改时触发
+  workflow_dispatch: # 手动触发
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: 检出代码
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # Step 2: 解析 Debian.json 文件
+      - name: Parse Debian.json
+        id: parse-debian-json
+        run: |
+          # 使用 jq 解析 JSON 文件
+          NAME=$(jq -r '.name' Debian.json)
+          VERSION=$(jq -r '.version' Debian.json)
+          URL=$(jq -r '.url' Debian.json)
+
+          # 设置环境变量
+          echo "NAME=$NAME" >> $GITHUB_ENV
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "DOWNLOAD_URL=$URL" >> $GITHUB_ENV
+
+      # Step 3: 下载 .tar.xz 文件
+      - name: Download Debian tar.xz file
+        run: |
+          mkdir -p input
+          wget -O input/source.tar.xz "${{ env.DOWNLOAD_URL }}"
+
+      # Step 4: 安装依赖工具
+      - name: Install dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y qemu-utils e2fsprogs util-linux xz-utils rsync parted jq
+
+      # Step 5: 转换为 qcow2 文件
+      - name: Convert to qcow2
+        run: |
+          mkdir -p output
+          TARGET_FILE="output/HiSH-image-${{ env.NAME }}-${{ env.VERSION }}.qcow2"
+          sudo ./convert.debian.sh input/source.tar.xz "$TARGET_FILE"
+
+      # Step 6: 上传生成的 qcow2 文件到 Release
+      - name: Create Release and upload artifact
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: "HiSH-image-${{ env.NAME }}-${{ env.VERSION }}"
+          name: "HiSH-image-${{ env.NAME }}-${{ env.VERSION }}"
+          files: output/HiSH-image-${{ env.NAME }}-${{ env.VERSION }}.qcow2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

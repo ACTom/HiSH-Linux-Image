@@ -103,8 +103,8 @@ echo "Creating a 120G qcow2 file..."
 qemu-img create -f qcow2 "$QCOW2_FILE" 120G
 if [ $? -ne 0 ]; then
     echo "Failed to create qcow2 file."
-    losetup -d "$LOOP_DEVICE"
     losetup -d "$PARTITION_LOOP_DEVICE"
+    losetup -d "$LOOP_DEVICE"
     rm -f "$RAW_FILE"
     rm -rf "$MOUNT_DIR" "$SOURCE_MOUNT_DIR"
     exit 1
@@ -116,8 +116,8 @@ modprobe nbd max_part=8
 qemu-nbd -c "$NBD_DEVICE" "$QCOW2_FILE"
 if [ $? -ne 0 ]; then
     echo "Failed to attach qcow2 file to NBD device."
-    losetup -d "$LOOP_DEVICE"
     losetup -d "$PARTITION_LOOP_DEVICE"
+    losetup -d "$LOOP_DEVICE"
     rm -f "$RAW_FILE" "$QCOW2_FILE"
     rm -rf "$MOUNT_DIR" "$SOURCE_MOUNT_DIR"
     exit 1
@@ -132,8 +132,8 @@ mkfs.ext4 "$NBD_DEVICE"
 if [ $? -ne 0 ]; then
     echo "Failed to format NBD partition."
     qemu-nbd -d "$NBD_DEVICE"
-    losetup -d "$LOOP_DEVICE"
     losetup -d "$PARTITION_LOOP_DEVICE"
+    losetup -d "$LOOP_DEVICE"
     rm -f "$RAW_FILE" "$QCOW2_FILE"
     rm -rf "$MOUNT_DIR" "$SOURCE_MOUNT_DIR"
     exit 1
@@ -145,8 +145,8 @@ mount "$NBD_DEVICE" "$MOUNT_DIR"
 if [ $? -ne 0 ]; then
     echo "Failed to mount NBD partition."
     qemu-nbd -d "$NBD_DEVICE"
-    losetup -d "$LOOP_DEVICE"
     losetup -d "$PARTITION_LOOP_DEVICE"
+    losetup -d "$LOOP_DEVICE"
     rm -f "$RAW_FILE" "$QCOW2_FILE"
     rm -rf "$MOUNT_DIR" "$SOURCE_MOUNT_DIR"
     exit 1
@@ -159,8 +159,8 @@ if [ $? -ne 0 ]; then
     echo "Failed to mount third partition."
     umount "$MOUNT_DIR"
     qemu-nbd -d "$NBD_DEVICE"
-    losetup -d "$LOOP_DEVICE"
     losetup -d "$PARTITION_LOOP_DEVICE"
+    losetup -d "$LOOP_DEVICE"
     rm -f "$RAW_FILE" "$QCOW2_FILE"
     rm -rf "$MOUNT_DIR" "$SOURCE_MOUNT_DIR"
     exit 1
@@ -174,8 +174,8 @@ if [ $? -ne 0 ]; then
     umount "$SOURCE_MOUNT_DIR"
     umount "$MOUNT_DIR"
     qemu-nbd -d "$NBD_DEVICE"
-    losetup -d "$LOOP_DEVICE"
     losetup -d "$PARTITION_LOOP_DEVICE"
+    losetup -d "$LOOP_DEVICE"
     rm -f "$RAW_FILE" "$QCOW2_FILE"
     rm -rf "$MOUNT_DIR" "$SOURCE_MOUNT_DIR"
     exit 1
@@ -209,8 +209,8 @@ if [ $? -ne 0 ]; then
     cd -
     umount "$MOUNT_DIR"
     qemu-nbd -d "$NBD_DEVICE"
+    losetup -d "$PARTITION_LOOP_DEVICE"
     losetup -d "$LOOP_DEVICE"
-    losetop -d "$PARTITION_LOOP_DEVICE"
     rm -f "$RAW_FILE" "$QCOW2_FILE"
     rm -rf "$MOUNT_DIR" "$SOURCE_MOUNT_DIR"
     exit 1
@@ -227,8 +227,8 @@ if [ -f "$DNF_CONF" ]; then
         echo "Failed to update DNF configuration."
         umount "$MOUNT_DIR"
         qemu-nbd -d "$NBD_DEVICE"
-        losetup -d "$LOOP_DEVICE"
         losetup -d "$PARTITION_LOOP_DEVICE"
+        losetup -d "$LOOP_DEVICE"
         rm -f "$RAW_FILE" "$QCOW2_FILE"
         rm -rf "$MOUNT_DIR" "$SOURCE_MOUNT_DIR"
         exit 1
@@ -241,8 +241,8 @@ fi
 echo "Unmounting and detaching devices..."
 umount "$MOUNT_DIR"
 qemu-nbd -d "$NBD_DEVICE"
-losetup -d "$LOOP_DEVICE"
 losetup -d "$PARTITION_LOOP_DEVICE"
+losetup -d "$LOOP_DEVICE"
 if [ $? -ne 0 ]; then
     echo "Failed to detach devices."
     exit 1
