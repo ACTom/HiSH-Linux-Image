@@ -1,0 +1,5 @@
+{
+  "name": "Ubuntu",
+  "version": "26.04",
+  "url": "https://cdimage.ubuntu.com/releases/26.04/release/ubuntu-26.04-wsl-arm64.wsl"
+}
