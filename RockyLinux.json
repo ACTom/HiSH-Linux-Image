@@ -1,0 +1,5 @@
+{
+  "name": "RockyLinux",
+  "version": "10",
+  "url": "https://dl.rockylinux.org/pub/rocky/10/images/aarch64/Rocky-10-WSL-Base.latest.aarch64.wsl"
+}

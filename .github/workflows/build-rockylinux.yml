@@ -1,0 +1,59 @@
+name: Build RockyLinux QCOW2
+
+on:
+  push:
+    paths:
+      - 'RockyLinux.json' # 只有当 RockyLinux.json 文件被修改时触发
+  workflow_dispatch: # 手动触发
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: 检出代码
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # Step 2: 解析 RockyLinux.json 文件
+      - name: Parse RockyLinux.json
+        id: parse-rockylinux-json
+        run: |
+          # 使用 jq 解析 JSON 文件
+          NAME=$(jq -r '.name' RockyLinux.json)
+          VERSION=$(jq -r '.version' RockyLinux.json)
+          URL=$(jq -r '.url' RockyLinux.json)
+
+          # 设置环境变量
+          echo "NAME=$NAME" >> $GITHUB_ENV
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "DOWNLOAD_URL=$URL" >> $GITHUB_ENV
+
+      # Step 3: 下载 .wsl 文件
+      - name: Download RockyLinux WSL file
+        run: |
+          mkdir -p input
+          wget -O input/source.wsl "${{ env.DOWNLOAD_URL }}"
+
+      # Step 4: 安装依赖工具
+      - name: Install dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y qemu-utils e2fsprogs util-linux rsync jq
+
+      # Step 5: 转换为 qcow2 文件
+      - name: Convert to qcow2
+        run: |
+          mkdir -p output
+          TARGET_FILE="output/HiSH-image-${{ env.NAME }}-${{ env.VERSION }}.qcow2"
+          sudo ./convert.rockylinux.sh input/source.wsl "$TARGET_FILE"
+
+      # Step 6: 上传生成的 qcow2 文件到 Release
+      - name: Create Release and upload artifact
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: "HiSH-image-${{ env.NAME }}-${{ env.VERSION }}"
+          name: "HiSH-image-${{ env.NAME }}-${{ env.VERSION }}"
+          files: output/HiSH-image-${{ env.NAME }}-${{ env.VERSION }}.qcow2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
